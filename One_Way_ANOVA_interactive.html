@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>One-Way ANOVA | Interactive Tutorial</title>
+<style>
+:root{--ink:#18303f;--muted:#5c7280;--line:#d8e3e8;--bg:#f5f8fa;--white:#fff;--teal:#0f7a77;--blue:#2f74b0;--orange:#d8833f;--purple:#7452a3;--soft:#ecf5f4;--soft2:#f3f7fb;--gold:#e8b14d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.52 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.main{max-width:1180px;margin:auto;padding:28px 18px 56px}
+header{padding:28px 30px;border-radius:20px;background:linear-gradient(125deg,#113a4b,#15706e);color:#fff;box-shadow:0 10px 28px rgba(17,58,75,.15)}
+header .eyebrow{font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#c9ebe2}
+h1{margin:6px 0 10px;font-size:clamp(28px,4vw,40px);line-height:1.14}
+header p{margin:0;max-width:790px;color:#e7f3f0}
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0 18px}
+.tab{border:1px solid var(--line);background:#fff;padding:10px 16px;border-radius:999px;font-weight:800;color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.panel{display:none}.panel.active{display:block}
+.layout{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(0,1.55fr);gap:20px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 4px 18px rgba(19,46,64,.05)}
+.card + .card{margin-top:16px}
+.wide{grid-column:1/-1}
+h2{margin:0 0 8px;font-size:24px}
+h3{margin:0 0 10px;font-size:18px}
+.sub{margin:3px 0 16px;color:var(--muted)}
+.step{font-size:12px;font-weight:800;letter-spacing:1.3px;color:var(--teal);text-transform:uppercase}
+.control{display:block;margin:18px 0}
+.control .line{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
+.value{color:var(--teal);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;margin-top:8px;accent-color:var(--teal)}
+.range{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.selectrow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+select{padding:7px 10px;border:1px solid #b7c8cf;border-radius:10px;background:#fff}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 6px}
+.metric{background:#fbfcfd;border:1px solid var(--line);border-radius:12px;padding:13px 10px}
+.metric small{display:block;font-size:12px;color:var(--muted)}
+.metric .big{font-size:clamp(19px,2.6vw,27px);font-weight:800;font-variant-numeric:tabular-nums}
+.note{padding:13px 15px;border-radius:12px;background:var(--soft);border-left:4px solid var(--teal);color:#175856;margin-top:14px}
+.note.warn{background:#fff5ec;border-left-color:var(--orange);color:#8f5421}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.figure{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:13px;margin-top:8px}
+.sw{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px}
+.formula{padding:12px 14px;background:#f0f5f7;border-radius:11px;font:14px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{padding:10px 15px;border-radius:10px;border:1px solid var(--teal);background:var(--teal);color:#fff;font-weight:800}
+.btn.alt{background:#fff;color:var(--teal)}
+.btn:hover{filter:brightness(.97)}
+.small{font-size:13px;color:var(--muted)}
+.ratio-wrap{margin-top:14px}
+.ratio-label{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:14px;margin-bottom:6px}
+.bar{height:14px;background:#edf3f6;border-radius:999px;overflow:hidden;border:1px solid #dde7eb}
+.fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:999px}
+.footer{margin-top:22px;font-size:13px;color:var(--muted)}
+.svgtext{font-size:12px;fill:#5b717d}.svglab{font-size:14px;fill:#264251;font-weight:700}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.main{padding:12px 12px 36px}header,.card{padding:16px}.metrics{grid-template-columns:1fr 1fr}.tab{padding:8px 12px;font-size:14px}}
+@media print{.tabs,.control,.selectrow,.btnrow{display:none!important}.panel{display:block;page-break-before:always}}
+
+.preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}.preset{display:flex;flex-direction:column;text-align:left;border-radius:13px;padding:12px 14px;gap:2px;background:#f5fbfa;border:1.5px solid #d2e8e5;color:var(--ink);transition:transform .12s,background .12s,border-color .12s}.preset:hover{transform:translateY(-2px);border-color:var(--teal);background:#eaf5f2}.preset:focus-visible{outline:3px solid #eab653}.preset .emoji{font-size:22px}.preset strong{font-size:13px}.preset small{font-size:11px;color:var(--muted)}.preset.surprise{background:#fff6e9;border-color:#f3d3a7}.section-rule{font-weight:800;letter-spacing:.5px;color:var(--teal);font-size:13px;margin:18px 0 0}.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.panel-heading h3{margin:0}.panel-heading h3 span{color:var(--orange);font-size:14px}.live-tag{font-size:11px;font-weight:900;color:var(--teal);background:#eaf8ef;border-radius:999px;padding:5px 9px}.layer-controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.layer-controls label{cursor:pointer;white-space:nowrap;padding:5px 10px;border:1px solid #d8e4e8;border-radius:100px;font-size:12px;background:#f9fbfc}.layer-controls input{accent-color:var(--teal)}.insight{font-size:14px;line-height:1.65}.insight p{margin:0 0 9px}.insight .highlight{font-weight:800;color:#086a68}.math-details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}.math-details summary{cursor:pointer;font-weight:800;font-size:13px;color:var(--teal)}.math-details .formula{margin-top:11px}.mini-note{font-size:13px;color:var(--muted);margin-top:12px}.metric .big{transition:color .2s}.bump{animation:pop .27s ease-out}@keyframes pop{0%{transform:scale(.95);opacity:.6}65%{transform:scale(1.07)}100%{transform:scale(1);opacity:1}}@media(max-width:480px){.preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Tutorial sections, separate from the original interactive controls */
+.tutorial-nav{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:20px 0 22px}
+.tutorial-nav a{display:inline-block;text-decoration:none;color:#155c60;font-size:13px;font-weight:750;background:white;border:1px solid #c9dedf;border-radius:999px;padding:9px 14px}
+.tutorial-nav a:hover,.tutorial-nav a:focus-visible{background:#e7f4f1;outline-color:#d49a40}
+.tutorial-section{margin:23px 0 26px;scroll-margin-top:20px}
+.tutorial-section>.section-heading{margin:0 0 14px}
+.section-heading h2{font-size:clamp(23px,3vw,30px);letter-spacing:-.35px;margin:2px 0 7px}
+.section-heading p{color:var(--muted);max-width:880px;margin:0;line-height:1.62}
+.section-kicker{text-transform:uppercase;letter-spacing:1.25px;color:var(--teal);font-size:12px;font-weight:850}
+.tutorial-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 4px 18px #163e4b0b}
+.tutorial-card h3{font-size:18px;margin:0 0 10px;color:var(--ink)}
+.tutorial-card p{margin:0 0 12px;line-height:1.68}
+.tutorial-card p:last-child{margin-bottom:0}
+.tutorial-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.tutorial-columns.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tutorial-columns .tutorial-card{height:100%}
+.tutorial-band{margin:14px 0;padding:17px 20px;border-left:4px solid var(--teal);background:#eef7f5;border-radius:4px 13px 13px 4px;line-height:1.7}
+.tutorial-band.warn{border-color:#cc8a3c;background:#fff7ed}
+.tutorial-band p{margin:0 0 8px}.tutorial-band p:last-child{margin:0}
+.tutorial-formula{background:#f2f6f8;border:1px solid #e0eaee;border-radius:10px;padding:12px 14px;margin:11px 0;overflow-x:auto;color:#143949;font:15px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:normal}
+.tutorial-steps{margin:0;padding-left:23px;line-height:1.8}
+.tutorial-steps li{margin-bottom:9px;padding-left:4px}
+.tutorial-steps li:last-child{margin-bottom:0}
+.tutorial-table{width:100%;border-collapse:collapse;margin:12px 0;min-width:340px;font-size:14px}
+.tutorial-table th{background:#eaf4f3;color:#245a5d;text-align:left;font-weight:800}
+.tutorial-table th,.tutorial-table td{border:1px solid #dae8eb;padding:8px 11px}
+.tutorial-table tbody tr:nth-child(even){background:#fafcfd}
+.tutorial-table-wrap{max-width:100%;overflow-x:auto}
+.tutorial-details{background:#fff;border:1px solid var(--line);border-radius:13px;margin:12px 0;padding:0 17px}
+.tutorial-details summary{padding:15px 0;cursor:pointer;color:#135e61;font-weight:800}
+.tutorial-details[open] summary{border-bottom:1px solid var(--line);margin-bottom:14px}
+.tutorial-details .detail-body{padding-bottom:16px;line-height:1.65}
+.tutorial-details p{margin:0 0 10px}
+.live-walkthrough{display:grid;gap:10px}
+.live-step{border:1px solid #dce9ea;background:#fbfdfd;border-radius:11px;padding:12px 15px}
+.live-step strong{display:block;color:#144f59;margin-bottom:3px}
+.live-step p{font-size:14px;line-height:1.6;color:#304d59;margin:5px 0 0}
+.live-step .live-equation{font:14px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere;color:#233b49}
+.live-step.final{background:#eaf6f2;border-color:#c8e5df}
+.tutorial-foot{color:var(--muted);font-size:13px;line-height:1.6}
+.tutorial-list{padding-left:22px;line-height:1.75;margin:0}
+.tutorial-list li{margin-bottom:8px}
+.tutorial-note{font-size:13px;line-height:1.6;color:#44616f}
+.tutorial-anchor{scroll-margin-top:20px}
+@media(max-width:850px){.tutorial-columns,.tutorial-columns.three{grid-template-columns:1fr}}
+@media(max-width:550px){.tutorial-card{padding:16px}.tutorial-nav{gap:6px}.tutorial-nav a{font-size:12px;padding:7px 10px}.tutorial-formula{font-size:13px}.live-step .live-equation{font-size:12px}}
+@media print{.tutorial-nav{display:none}.tutorial-card,.tutorial-details{break-inside:avoid}.tutorial-details .detail-body{display:block!important}}
+
+
+/* Keep the selected significance level visible on all browsers. */
+#alpha.alpha-select{color:#18303f!important;background-color:#fff!important;-webkit-text-fill-color:#18303f!important;color-scheme:light;min-width:112px;width:112px;padding:9px 30px 9px 13px;font-weight:750;line-height:1.3;appearance:auto}
+#alpha.alpha-select option{color:#18303f!important;background:#fff!important;-webkit-text-fill-color:#18303f!important}
+.alpha-current{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;background:#e8f5f1;color:#135755;border:1px solid #b7dcd5;border-radius:10px;font-weight:700;font-size:14px}
+.alpha-current output{font-weight:850;font-variant-numeric:tabular-nums;color:#073f41;font-size:16px;min-width:4ch;text-align:center}
+</style>
+</head>
+<body>
+<main class="main">
+<header><div class="eyebrow">Interactive statistics tutorial</div><h1>One-Way ANOVA</h1><p>Compare the means of three groups. Change their means, variation, and sample sizes to see how ANOVA uses these quantities to calculate the F-statistic and test the null hypothesis.</p></header>
+
+
+<nav class="tutorial-nav" aria-label="Tutorial sections"><a href="#one-foundations">1. Concepts</a><a href="#explore">2. Interactive experiment</a><a href="#one-calculations">3. Calculations</a><a href="#one-interpretation">4. Interpretation</a></nav>
+<section id="one-foundations" class="tutorial-section">
+  <div class="section-heading"><div class="section-kicker">01 / Understanding the problem</div><h2>Why do we use one-way ANOVA?</h2><p>Suppose three groups receive different treatments, and we measure the same numerical response in each group. Their sample means will probably not be identical. One-way ANOVA helps determine whether the observed differences are large compared with the variation among observations within the groups.</p></div>
+  <div class="tutorial-columns">
+    <article class="tutorial-card"><h3>One factor, three groups</h3><p>A <strong>factor</strong> identifies how the observations are grouped. Here the factor has three levels, called <strong>A, B, and C</strong>. For example, A, B, and C could represent three methods of preparing a material. The <strong>response</strong> is the measured material strength.</p><p>Each observation is one measurement. The <strong>sample mean</strong> is the average of the observations in a group. The three means are compared using a single ANOVA test.</p></article>
+    <article class="tutorial-card"><h3>Why compare variation?</h3><p>If the three means differ by a small amount but the observations within each group vary widely, the differences may be difficult to distinguish from ordinary variation.</p><p>If the means are far apart and the measurements within each group are tightly clustered, the evidence of a difference among group means is stronger. ANOVA measures these two kinds of variation and compares them.</p></article>
+  </div>
+  <div class="tutorial-band"><strong>The question tested by one-way ANOVA</strong><div class="tutorial-formula">H₀: μA = μB = μC<br>H₁: At least one population mean differs.</div><p>Here <strong>H₀</strong> is the null hypothesis, <strong>H₁</strong> is the alternative hypothesis, and μA, μB, μC denote the population means. Rejecting H₀ does not identify which particular groups differ.</p></div>
+  <div class="tutorial-columns three">
+    <article class="tutorial-card"><h3>Between-group variation</h3><p>Measures how far each group mean is from the overall mean. Group means that are farther apart generally produce larger between-group variation.</p></article>
+    <article class="tutorial-card"><h3>Within-group variation</h3><p>Measures how far individual observations are from their own group mean. This variation remains even when the group means are equal.</p></article>
+    <article class="tutorial-card"><h3>The F-statistic</h3><p>Compares between-group variation with within-group variation, after accounting for their degrees of freedom. A larger F provides more evidence against H₀.</p></article>
+  </div>
+</section>
+
+<section id="explore" class="panel active">
+  <div class="layout">
+    <div>
+      <div class="card">
+        <div class="step">02 / Change the experimental conditions</div>
+        <h2>Build your experiment</h2>
+        <p class="sub">Select a preset, or adjust the controls individually. The plots and ANOVA calculations update together.</p>
+
+        <div class="preset-grid" aria-label="Experiments to try">
+          <button class="preset" data-preset="equal"><span class="emoji">🤝</span><strong>Same means</strong><small>Compare equal means</small></button>
+          <button class="preset" data-preset="clear"><span class="emoji">🎯</span><strong>Far apart</strong><small>Clearer signal</small></button>
+          <button class="preset" data-preset="noise"><span class="emoji">🌪️</span><strong>More within-group variation</strong><small>Spread out the observations</small></button>
+          <button class="preset" data-preset="unequal"><span class="emoji">⚖️</span><strong>Unequal teams</strong><small>Who pulls the mean?</small></button>
+          <button class="preset surprise" data-preset="random"><span class="emoji">🎲</span><strong>Random settings</strong><small>Change all settings</small></button>
+        </div>
+        <div class="section-rule">Adjust the three groups</div><p class="small">The sample means are A = 50 − d, B = 50, and C = 50 + d, where d is the distance between neighboring means. The within-group sample SD is common to all three groups.</p>
+        <label class="control">
+          <span class="line">Distance between neighboring means <output id="gapVal" class="value">6</output></span>
+          <input type="range" id="gap" min="0" max="15" value="6" step="0.5" />
+          <span class="range"><span>0 = same means</span><span>15 = far apart</span></span>
+        </label>
+
+        <label class="control">
+          <span class="line">Within-group sample SD <output id="sdVal" class="value">8</output></span>
+          <input type="range" id="sd" min="2" max="16" value="8" step="0.5" />
+          <span class="range"><span>2 = tight groups</span><span>16 = spread out groups</span></span><span class="small">SD (standard deviation) describes the spread of observations around their own group mean. Increasing SD does not move those means.</span>
+        </label>
+
+        <div class="sample-controls" aria-label="Group sample sizes">
+          <h3 style="margin:24px 0 6px">Observations in each group</h3>
+          <p class="small" style="margin:0">The number of observations can differ by group. When the sample sizes differ, each group contributes to the overall mean in proportion to its size.</p>
+          <label class="control">
+            <span class="line">Group A observations <output id="nAVal" class="value">6</output></span>
+            <input type="range" id="nA" min="3" max="25" value="6" step="1" />
+            <span class="range"><span>3</span><span>25</span></span>
+          </label>
+          <label class="control">
+            <span class="line">Group B observations <output id="nBVal" class="value">6</output></span>
+            <input type="range" id="nB" min="3" max="25" value="6" step="1" />
+            <span class="range"><span>3</span><span>25</span></span>
+          </label>
+          <label class="control">
+            <span class="line">Group C observations <output id="nCVal" class="value">6</output></span>
+            <input type="range" id="nC" min="3" max="25" value="6" step="1" />
+            <span class="range"><span>3</span><span>25</span></span>
+          </label>
+        </div>
+
+        <div class="selectrow">
+          <label for="alpha"><strong>Significance level:</strong></label>
+          <select id="alpha" class="alpha-select" aria-label="Significance level">
+            <option value="0.10">0.10</option>
+            <option value="0.05" selected>0.05</option>
+            <option value="0.01">0.01</option>
+          </select>
+          <span class="alpha-current">Selected α = <output id="alphaSelected" aria-live="polite">0.05</output></span>
+        </div>
+        <p class="small">The significance level α is the cutoff used to make a decision. Common choices are 0.10, 0.05, and 0.01. Changing α changes the decision rule, not the data or the observed F.</p>
+
+        <div class="note" id="intuitionBox" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <h3>Interpret the current pattern</h3>
+        <div id="explainText" class="insight"></div>
+        <details class="math-details"><summary>Show the ANOVA calculations</summary><div class="formula" id="anovaMath"></div></details>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div class="panel-heading"><h3>Observations by group</h3><span class="live-tag">● LIVE</span></div>
+        <p class="small">Each dot is an observation. A colored vertical line marks the sample mean for that group. The distance between a dot and its group mean shows how much that observation differs from the mean.</p>
+        <p class="small" id="meansText">A = 44, B = 50, C = 56</p>
+        <svg id="dotPlot" class="figure" viewBox="0 0 720 255" role="img" aria-label="Three-group dot plot"></svg>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--teal)"></i>Group A</span>
+          <span><i class="sw" style="background:var(--blue)"></i>Group B</span>
+          <span><i class="sw" style="background:var(--orange)"></i>Group C</span>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <h3>See the geometry <span aria-hidden="true">📐</span></h3>
+          <p class="small">The dashed line marks the <strong>grand mean</strong>, which is the average of all observations. It is weighted by group size. The controls show within-group spread and the distances between group means and the grand mean.</p>
+          <div class="layer-controls">
+            <label><input type="checkbox" id="showGrand" checked /> Grand mean</label>
+            <label><input type="checkbox" id="showSpread" checked /> Within-group spread</label>
+            <label><input type="checkbox" id="showDistance" checked /> Between-group distances</label>
+          </div>
+          <svg id="geoPlot" class="figure" viewBox="0 0 520 290" role="img" aria-label="ANOVA geometry diagram"></svg>
+        </div>
+        <div class="card">
+          <h3>Between-group and within-group variation</h3>
+          <div class="metrics">
+            <div class="metric"><small>MS between</small><div class="big" id="msbOut">–</div></div>
+            <div class="metric"><small>MS within</small><div class="big" id="mswOut">–</div></div>
+            <div class="metric"><small>Observed F</small><div class="big" id="fOut">–</div></div>
+            <div class="metric"><small>p-value</small><div class="big" id="pOut">–</div></div>
+          </div>
+          <div class="ratio-wrap">
+            <div class="ratio-label"><span>MS between ÷ MS within</span><span id="ratioText">–</span></div>
+            <div class="bar"><div class="fill" id="ratioFill" style="width:0%"></div></div>
+          </div>
+          <div class="note" id="decisionBox" aria-live="polite"></div><p class="small">MS stands for mean square. The F-statistic is MS between divided by MS within. The p-value measures how unusual the observed F would be if H₀ were true.</p>
+          <div class="mini-note" id="experimentTip"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section id="one-calculations" class="tutorial-section">
+ <div class="section-heading"><div class="section-kicker">03 / Working through the calculations</div><h2>From group means to the F-statistic</h2><p>The ANOVA calculation has two parts: quantify the separation of the group means, then quantify the variation of observations around their own group means. Dividing the corresponding mean squares gives F.</p></div>
+ <div class="tutorial-card">
+  <h3>Calculation using your current settings</h3>
+  <p class="tutorial-note">Change any slider in the interactive experiment above. These values and calculations update automatically.</p>
+  <div id="oneLiveSteps" class="live-walkthrough" aria-live="polite"></div>
+ </div>
+ <details class="tutorial-details" open><summary>Worked example using nine observations</summary><div class="detail-body">
+  <p>Consider the following three groups, each containing three observations.</p>
+  <div class="tutorial-table-wrap"><table class="tutorial-table"><thead><tr><th>Group A</th><th>Group B</th><th>Group C</th></tr></thead><tbody><tr><td>4</td><td>7</td><td>10</td></tr><tr><td>5</td><td>8</td><td>11</td></tr><tr><td>6</td><td>9</td><td>12</td></tr><tr><th>Mean = 5</th><th>Mean = 8</th><th>Mean = 11</th></tr></tbody></table></div>
+  <ol class="tutorial-steps"><li><strong>Grand mean:</strong> The nine observations have an overall mean of 8.</li><li><strong>Between-group sum of squares:</strong> SS between = 3(5 − 8)² + 3(8 − 8)² + 3(11 − 8)² = 54.</li><li><strong>Within-group sum of squares:</strong> In each group, the squared deviations from its mean add to 2. Therefore SS within = 2 + 2 + 2 = 6.</li><li><strong>Mean squares:</strong> MS between = 54 / (3 − 1) = 27 and MS within = 6 / (9 − 3) = 1.</li><li><strong>F-statistic:</strong> F = 27 / 1 = 27. With numerator degrees of freedom 2 and denominator degrees of freedom 6, the p-value is 0.001.</li></ol>
+  <p>Here the group means are sufficiently far apart, relative to their within-group variation, to produce a large F-statistic.</p>
+ </div></details>
+ <div class="tutorial-columns">
+  <article class="tutorial-card"><h3>What are sums of squares?</h3><p>A <strong>sum of squares (SS)</strong> adds squared deviations. Squaring prevents positive and negative deviations from cancelling. <strong>SS between</strong> measures separation among group means; <strong>SS within</strong> measures variation of observations around their own means.</p><div class="tutorial-formula">SS between = Σ nⱼ(ȳⱼ − ȳ)²<br>SS within = Σ Σ(yⱼᵢ − ȳⱼ)²</div><p>Here nⱼ is the size of group j, ȳⱼ is its sample mean, and ȳ is the grand mean.</p></article>
+  <article class="tutorial-card"><h3>Why divide SS by degrees of freedom?</h3><p><strong>SS between</strong> measures differences among the <em>k</em> group means. These differences have <em>k − 1</em> degrees of freedom because, once the grand mean is fixed, the last group mean cannot vary independently of the others. <strong>SS within</strong> measures how observations differ from their group means. After calculating <em>k</em> group means from <em>N</em> observations, <em>N − k</em> degrees of freedom remain.</p><p>Each sum of squares therefore represents a different number of freely varying deviations. Dividing SS by its corresponding degrees of freedom gives a <strong>mean square (MS)</strong>, which is a variance estimate. Under the usual ANOVA assumptions, MS within estimates the common population variance. MS between estimates that same variance when the population group means are equal, but can be larger when the means differ.</p><div class="tutorial-formula">df between = k − 1 = 2<br>df within = N − k = N − 3<br>MS = SS / df<br>F = MS between / MS within</div><p>There are k = 3 groups and N observations in total.</p></article>
+ </div>
+</section>
+<section id="one-interpretation" class="tutorial-section">
+ <div class="section-heading"><div class="section-kicker">04 / Interpreting results</div><h2>What can we conclude from ANOVA?</h2><p>Statistical significance is a statement about evidence against the null hypothesis. It is not a measure of how large or important the differences are.</p></div>
+ <div class="tutorial-columns">
+  <article class="tutorial-card"><h3>F, p-value, and α</h3><p>When H₀ is true, a large F is less likely than a small F. The <strong>p-value</strong> is the probability, assuming H₀, of obtaining an F-statistic at least as large as the one observed.</p><p>If p &lt; α, reject H₀. The same decision can be made by comparing the observed F with its <strong>critical F</strong> for the selected α and degrees of freedom. If p is not below α, do not reject H₀.</p></article>
+  <article class="tutorial-card"><h3>What ANOVA does not establish</h3><p>Rejecting H₀ indicates that not all population means are equal. The overall test does not specify which pairs of means differ. Not rejecting H₀ does not prove that the population means are identical.</p><p>ANOVA also does not tell us whether an observed difference is practically important. The actual group means should be considered along with the test result.</p></article>
+ </div>
+ <div class="tutorial-band warn"><strong>Conditions for the usual F-test</strong><p>The standard one-way ANOVA inference assumes independent observations, normally distributed errors within groups, and equal population variances. The simulated data in this tool are constructed for demonstration; the reported calculations describe those displayed values.</p></div>
+ <details class="tutorial-details"><summary>Suggested comparisons using the existing controls</summary><div class="detail-body"><ol class="tutorial-steps"><li>Select <strong>Same means</strong>. With all three means equal, SS between and F are zero even though the dots are spread out within groups.</li><li>Select <strong>Far apart</strong>. The means separate while the groups remain relatively tight, increasing F.</li><li>Select <strong>More within-group variation</strong>. The same general separation is harder to detect when SD is larger.</li><li>Select <strong>Unequal teams</strong>. The group with more observations has more influence on the grand mean.</li><li>Keep the values fixed and change <strong>α</strong>. The observed F and p-value do not change; only the cutoff for the statistical decision changes.</li></ol></div></details>
+</section>
+
+<p class="footer">Designed for visual intuition. Dots are a deterministic teaching example: each group's sample mean and sample SD match the sliders exactly. The weighted grand mean and unequal-sample-size ANOVA calculations update live. The usual ANOVA inference assumes independent observations, normally distributed errors, and equal population variances.</p>
+</main>
+
+<script>
+function logGamma(z){const p=[676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-0.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];if(z<0.5)return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);z-=1;let x=0.9999999999998099;for(let i=0;i<p.length;i++)x+=p[i]/(z+i+1);let t=z+p.length-0.5;return 0.9189385332046727+(z+0.5)*Math.log(t)-t+Math.log(x);}
+function betaCF(a,b,x){const MAX=300,EPS=2e-14,FPMIN=1e-300;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;for(let m=1;m<=MAX;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<EPS)break;}return h;}
+function regBeta(x,a,b){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log1p(-x));if(x<(a+1)/(a+b+2))return Math.max(0,Math.min(1,bt*betaCF(a,b,x)/a));return Math.max(0,Math.min(1,1-bt*betaCF(b,a,1-x)/b));}
+function fSF(f,d1,d2){if(f<=0)return 1;return regBeta(d2/(d2+d1*f),d2/2,d1/2);}
+function fPDF(f,d1,d2){if(f<=0){if(d1<2)return Infinity;if(d1===2)return 1;return 0;}const a=d1/2,b=d2/2;return Math.exp(a*Math.log(d1/d2)+(a-1)*Math.log(f)-(logGamma(a)+logGamma(b)-logGamma(a+b))-(a+b)*Math.log1p(d1*f/d2));}
+function fCritical(alpha,d1,d2){let lo=0,hi=1;while(fSF(hi,d1,d2)>alpha&&hi<1e14)hi*=2;for(let i=0;i<90;i++){let mid=(lo+hi)/2;if(fSF(mid,d1,d2)>alpha)lo=mid;else hi=mid;}return (lo+hi)/2;}
+function calculate(ns,gap,sd){
+  const means=[50-gap,50,50+gap],N=ns.reduce((a,b)=>a+b,0);
+  const grand=means.reduce((sum,mu,j)=>sum+ns[j]*mu,0)/N;
+  const dfB=2,dfW=N-3;
+  const ssB=means.reduce((sum,mu,j)=>sum+ns[j]*(mu-grand)**2,0);
+  const ssW=ns.reduce((sum,n)=>sum+(n-1)*sd**2,0);
+  const msB=ssB/dfB,msW=ssW/dfW;
+  const f=msB/msW,p=fSF(f,dfB,dfW);
+  return {ns,N,means,grand,gap,sd,dfB,dfW,ssB,ssW,msB,msW,f,p};
+}
+function standardizedScores(n){const arr=Array.from({length:n},(_,i)=>i-(n-1)/2);const scale=Math.sqrt(arr.reduce((s,v)=>s+v*v,0)/(n-1));return arr.map(v=>v/scale);}
+function observations(ns,gap,sd){return [50-gap,50,50+gap].flatMap((mu,j)=>standardizedScores(ns[j]).map((x,i)=>({group:['A','B','C'][j],value:mu+sd*x,index:i+1})));}
+const $=id=>document.getElementById(id);
+const fmt=(x,d=2)=>Number.isFinite(x)?x.toFixed(d):'–';
+const fmtp=p=>p<0.0001?'<0.0001':p.toFixed(4);
+const colors=['#0f7a77','#2f74b0','#d8833f'];
+const groupNames=['A','B','C'];
+function svgEl(name,attrs,text){const e=document.createElementNS('http://www.w3.org/2000/svg',name);Object.keys(attrs).forEach(k=>e.setAttribute(k,attrs[k]));if(text!==undefined)e.textContent=text;return e;}
+
+function drawDotPlot(data,calc){const svg=$('dotPlot');svg.replaceChildren();const L=60,R=670,T=28,rowGap=70;const min=50-calc.gap-1.8*calc.sd,max=50+calc.gap+1.8*calc.sd;const x=v=>L+(v-min)/(max-min)*(R-L);svg.append(svgEl('line',{x1:L,y1:230,x2:R,y2:230,stroke:'#879aa4','stroke-width':1.4}));for(let i=0;i<=6;i++){const v=min+(max-min)*i/6,xx=x(v);svg.append(svgEl('line',{x1:xx,y1:230,x2:xx,y2:236,stroke:'#879aa4'}));svg.append(svgEl('text',{x:xx,y:250,'text-anchor':'middle',class:'svgtext'},Math.round(v)));}
+ const grand=calc.grand;if($('showGrand').checked){svg.append(svgEl('line',{x1:x(grand),y1:12,x2:x(grand),y2:218,stroke:'#768891','stroke-dasharray':'6 5','stroke-width':1.6}));svg.append(svgEl('text',{x:x(grand),y:16,'text-anchor':'middle',class:'svgtext'},'grand mean ' + fmt(grand,1)));}
+ for(let j=0;j<3;j++){
+   const y=T+j*rowGap;const mu=[50-calc.gap,50,50+calc.gap][j];
+   svg.append(svgEl('line',{x1:L,y1:y+24,x2:R,y2:y+24,stroke:'#e3ebef','stroke-dasharray':'3 6'}));
+   svg.append(svgEl('text',{x:7,y:y+28,class:'svglab'},`${groupNames[j]} · ${calc.ns[j]}`));
+   const pts=data.filter(d=>d.group===groupNames[j]);
+   pts.forEach((d,i)=>svg.append(svgEl('circle',{cx:x(d.value),cy:y+24+((i%3)-1)*5,r:4.8,fill:colors[j],opacity:.88})));
+   svg.append(svgEl('line',{x1:x(mu),y1:y+6,x2:x(mu),y2:y+42,stroke:colors[j],'stroke-width':2.2}));
+ }
+}
+
+function drawGeoPlot(calc){const svg=$('geoPlot');svg.replaceChildren();const L=66,R=470,T=36,rowGap=72;const min=50-calc.gap-1.8*calc.sd,max=50+calc.gap+1.8*calc.sd;const x=v=>L+(v-min)/(max-min)*(R-L);
+ svg.append(svgEl('line',{x1:L,y1:260,x2:R,y2:260,stroke:'#8a9ea8','stroke-width':1.3}));
+ for(let i=0;i<=5;i++){const v=min+(max-min)*i/5,xx=x(v);svg.append(svgEl('line',{x1:xx,y1:260,x2:xx,y2:266,stroke:'#8a9ea8'}));svg.append(svgEl('text',{x:xx,y:284,'text-anchor':'middle',class:'svgtext'},Math.round(v)));}
+ const gm=calc.grand,gmx=x(gm);
+ if($('showGrand').checked)svg.append(svgEl('line',{x1:gmx,y1:18,x2:gmx,y2:245,stroke:'#6f818d','stroke-dasharray':'6 5','stroke-width':1.8}));
+ if($('showGrand').checked)svg.append(svgEl('text',{x:gmx,y:17,'text-anchor':'middle',class:'svgtext'},'grand mean ' + fmt(gm,1)));
+ for(let j=0;j<3;j++){
+   const y=T+j*rowGap,mu=[50-calc.gap,50,50+calc.gap][j],muX=x(mu),sdL=x(mu-calc.sd),sdR=x(mu+calc.sd),dist=Math.abs(mu-gm);
+   svg.append(svgEl('text',{x:18,y:y+6,class:'svglab'},groupNames[j] + ' (n=' + calc.ns[j] + ')'));
+   if($('showSpread').checked){svg.append(svgEl('rect',{x:Math.min(sdL,sdR),y:y+18,width:Math.abs(sdR-sdL),height:20,rx:10,fill:colors[j],opacity:.18}));
+   svg.append(svgEl('line',{x1:sdL,y1:y+28,x2:sdR,y2:y+28,stroke:colors[j],'stroke-width':2.2}));
+   svg.append(svgEl('line',{x1:sdL,y1:y+22,x2:sdL,y2:y+34,stroke:colors[j],'stroke-width':2}));
+   svg.append(svgEl('line',{x1:sdR,y1:y+22,x2:sdR,y2:y+34,stroke:colors[j],'stroke-width':2}));
+   } svg.append(svgEl('circle',{cx:muX,cy:y+28,r:5.5,fill:colors[j]}));
+   if($('showDistance').checked){svg.append(svgEl('line',{x1:muX,y1:y+48,x2:gmx,y2:y+48,stroke:'#98a9b2','stroke-width':2.2}));
+   svg.append(svgEl('circle',{cx:gmx,cy:y+48,r:3.3,fill:'#98a9b2'}));
+   svg.append(svgEl('circle',{cx:muX,cy:y+48,r:3.3,fill:'#98a9b2'}));
+   svg.append(svgEl('text',{x:(muX+gmx)/2,y:y+63,'text-anchor':'middle',class:'svgtext'},'distance = '+fmt(dist,1)));
+   } if($('showSpread').checked)svg.append(svgEl('text',{x:(sdL+sdR)/2,y:y+12,'text-anchor':'middle',class:'svgtext'},'within spread ≈ ±SD'));
+ }
+}
+
+
+function renderOneLive(calc,crit,reject,alpha){
+ const el=document.getElementById('oneLiveSteps');if(!el)return;
+ const n=calc.ns,mu=calc.means,g=calc.grand,ff=x=>Number(x).toFixed(2);
+ const betweenParts=mu.map((m,j)=>n[j]+'('+ff(m)+' − '+ff(g)+')²').join(' + ');
+ const withinParts=n.map(q=>'('+q+' − 1)').join(' + ');
+ el.innerHTML=`
+ <div class="live-step"><strong>1. Count the observations and find the group means</strong><div class="live-equation">nA = ${n[0]}, nB = ${n[1]}, nC = ${n[2]}; N = ${calc.N}<br>ȳA = ${ff(mu[0])}, ȳB = ${ff(mu[1])}, ȳC = ${ff(mu[2])}</div><p>Each sample mean is the average measurement in its group. The simulator sets these means using the distance slider.</p></div>
+ <div class="live-step"><strong>2. Find the grand mean</strong><div class="live-equation">ȳ = [${n[0]}(${ff(mu[0])}) + ${n[1]}(${ff(mu[1])}) + ${n[2]}(${ff(mu[2])})] / ${calc.N} = ${ff(g)}</div><p>When group sizes differ, a larger group contributes more observations and has more influence on the grand mean.</p></div>
+ <div class="live-step"><strong>3. Calculate SS between</strong><div class="live-equation">${betweenParts} = ${ff(calc.ssB)}</div><p>Each squared distance between a group mean and the grand mean is multiplied by the group size.</p></div>
+ <div class="live-step"><strong>4. Calculate SS within</strong><div class="live-equation">[(${n[0]} − 1) + (${n[1]} − 1) + (${n[2]} − 1)] × ${ff(calc.sd)}² = ${ff(calc.ssW)}</div><p>In this simulator, the sample SD is ${ff(calc.sd)} for every group. Each group therefore contributes (n − 1) × SD² to SS within.</p></div>
+ <div class="live-step"><strong>5. Divide by degrees of freedom</strong><div class="live-equation">df between = 3 − 1 = 2; df within = ${calc.N} − 3 = ${calc.dfW}<br>MS between = ${ff(calc.ssB)} / 2 = ${ff(calc.msB)}<br>MS within = ${ff(calc.ssW)} / ${calc.dfW} = ${ff(calc.msW)}</div><p>Dividing each sum of squares by its degrees of freedom produces the corresponding mean square.</p></div>
+ <div class="live-step final"><strong>6. Calculate F and make the decision</strong><div class="live-equation">F = ${ff(calc.msB)} / ${ff(calc.msW)} = ${calc.f.toFixed(3)}<br>p = ${calc.p<.0001?'&lt; 0.0001':calc.p.toFixed(4)}; α = ${alpha.toFixed(2)}; critical F = ${crit.toFixed(3)}</div><p><strong>${reject?'Reject H₀.':'Do not reject H₀.'}</strong> ${reject?'The group means provide evidence that at least one population mean differs.':'The displayed differences are not sufficient to reject equality of the population means at this significance level.'} The p-value is computed using F with 2 and ${calc.dfW} degrees of freedom.</p></div>`;
+}
+
+function renderExplore(){
+ const ns=['nA','nB','nC'].map(id=>+$(id).value);
+ ['nA','nB','nC'].forEach((id,j)=>$(id+'Val').textContent=ns[j]);
+ const gap=+$('gap').value,sd=+$('sd').value,alpha=+$('alpha').value;
+ $('gapVal').textContent=fmt(gap,1);$('sdVal').textContent=fmt(sd,1);$('alphaSelected').textContent=alpha.toFixed(2);
+ const calc=calculate(ns,gap,sd);window._anovaState=calc;window._anovaAlpha=alpha;
+ const data=observations(ns,gap,sd);
+ $('meansText').textContent=`Sample means: A = ${fmt(50-gap,1)} (n=${ns[0]}), B = 50.0 (n=${ns[1]}), C = ${fmt(50+gap,1)} (n=${ns[2]}) · each sample SD = ${fmt(sd,1)} · weighted grand mean = ${fmt(calc.grand,2)}`;
+ drawDotPlot(data,calc);drawGeoPlot(calc);
+ $('msbOut').textContent=fmt(calc.msB,2);$('mswOut').textContent=fmt(calc.msW,2);
+ $('fOut').textContent=fmt(calc.f,3);$('pOut').textContent=fmtp(calc.p);
+ const crit=fCritical(alpha,calc.dfB,calc.dfW),reject=calc.p<alpha;
+ renderOneLive(calc,crit,reject,alpha);
+ const width=Math.max(2,Math.min(100,calc.f/8*100));
+ $('ratioFill').style.width=width+'%';$('ratioText').textContent='F = '+fmt(calc.f,3);
+ $('decisionBox').className='note'+(reject?'':' warn');
+ $('decisionBox').innerHTML=`<strong>${reject?'Reject H₀':'Do not reject H₀'}</strong> at α = ${alpha}. Critical F = ${fmt(crit,3)}. ${reject?'The observed F exceeds the critical value.':'The observed F does not exceed the critical value.'}`;
+ $('anovaMath').textContent=`Total observations N = ${ns.join(' + ')} = ${calc.N}\nWeighted grand mean = Σ(nⱼ × group meanⱼ) / N = ${fmt(calc.grand,2)}\nSS between = Σ nⱼ(group meanⱼ − grand mean)² = ${fmt(calc.ssB,2)}\nMS between = SS between / 2 = ${fmt(calc.msB,2)}\nSS within = Σ(nⱼ − 1) × SD² = ${fmt(calc.ssW,2)}\nMS within = SS within / (${calc.N} − 3) = ${fmt(calc.msW,2)}\nF = MS between / MS within = ${fmt(calc.f,3)}`;
+ $('explainText').innerHTML=`<p><span class="highlight">${gap===0?'Identical means!':'Group means are separated.'}</span> ${gap===0?'Between-group variation is zero, making F = 0.':'Moving their means farther apart grows the between-group signal.'}</p><p><span class="highlight">Try the within-group SD slider.</span> A larger SD spreads observations farther from their group mean and reduces F when all else is fixed.</p><p><span class="highlight">Unequal teams:</span> Your current weighted grand mean is ${fmt(calc.grand,2)}. Larger groups pull it toward themselves.</p>`;
+ $('intuitionBox').innerHTML=`<strong>Current data:</strong> Your groups have ${ns.join(', ')} dots, and the weighted grand mean is ${fmt(calc.grand,2)}. The displayed calculations use these values.`; $('experimentTip').textContent=gap===0?'Same means ⇒ no between-group signal. Try moving the distance slider.':sd>gap*2?'More within-group variation is obscuring the mean differences. Try reducing the SD.':'To increase F without changing the mean distance, decrease within-group SD.';
+}
+
+
+['gap','sd','nA','nB','nC','alpha'].forEach(id=>$(id).addEventListener('input',renderExplore));
+$('alpha').addEventListener('change',renderExplore);
+
+
+const presets={equal:{gap:0,sd:8,ns:[6,6,6]},clear:{gap:13,sd:3,ns:[8,8,8]},noise:{gap:5,sd:16,ns:[9,9,9]},unequal:{gap:7,sd:7,ns:[24,4,9]}};
+document.querySelectorAll('.preset').forEach(btn=>btn.addEventListener('click',()=>{
+ const key=btn.dataset.preset;
+ const p=key==='random'?{gap:Math.round(Math.random()*30)/2,sd:Math.round(4+Math.random()*24)/2,ns:Array.from({length:3},()=>Math.floor(3+Math.random()*23))}:presets[key];
+ $('gap').value=p.gap;$('sd').value=p.sd;['nA','nB','nC'].forEach((id,j)=>$(id).value=p.ns[j]);
+ renderExplore();
+ ['fOut','pOut'].forEach(id=>{const e=$(id);e.classList.remove('bump');void e.offsetWidth;e.classList.add('bump');});
+}));
+['showGrand','showSpread','showDistance'].forEach(id=>$(id).addEventListener('change',renderExplore));
+renderExplore();
+</script>
+</body>
+</html>
